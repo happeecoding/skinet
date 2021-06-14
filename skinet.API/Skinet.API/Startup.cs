@@ -15,6 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Infrastructure.Data;
 using Core.Interfaces;
+using Skinet.API.Helpers;
 
 namespace Skinet.API
 {
@@ -33,6 +34,8 @@ namespace Skinet.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddAutoMapper(typeof(MappingProfiles));
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -54,6 +57,7 @@ namespace Skinet.API
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseStaticFiles();
 
             app.UseAuthorization();
 
