@@ -16,6 +16,9 @@ using System.Threading.Tasks;
 using Infrastructure.Data;
 using Core.Interfaces;
 using Skinet.API.Helpers;
+using Skinet.API.Middleware;
+using Skinet.API.Errors;
+using Skinet.API.Extensions;
 
 namespace Skinet.API
 {
@@ -33,27 +36,21 @@ namespace Skinet.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IProductRepository, ProductRepository>();
-            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddAutoMapper(typeof(MappingProfiles));
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Skinet.API", Version = "v1" });
-            });
             services.AddDbContext<StoreContext>(x => x.UseSqlServer(_config.GetConnectionString("DefaultConnection")));
+
+            services.AddApplicationServices();
+            services.AddSwaggerDoccumentation();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Skinet.API v1"));
-            }
-
+            app.UseMiddleware<ExceptionMiddleware>();
+            app.UseSwaggerDoccumentation();
+            app.UseStatusCodePagesWithReExecute("/errors/{0}");
             app.UseHttpsRedirection();
 
             app.UseRouting();
